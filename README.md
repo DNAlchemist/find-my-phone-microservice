@@ -7,8 +7,8 @@ An application using google service to find your android device.
     // startup application
     ./gradlew run
     
-    // send healthcheck request
-    curl localhost:5050/health
+    // get your device list
+    curl localhost:5050/android/devices -u "yourgooglemail:yourgooglepassword"
     
 ## Run tests
 

@@ -21,7 +21,19 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
  * SOFTWARE.
  */
+
+
+import geb.Browser
+import org.slf4j.LoggerFactory
+
+import java.util.concurrent.ConcurrentLinkedQueue
+
+import static org.openqa.selenium.By.xpath
 import static ratpack.groovy.Groovy.ratpack
+import static ratpack.jackson.Jackson.json
+
+def browsers = [] as ConcurrentLinkedQueue<Browser>
+def log = LoggerFactory.getLogger("ratpack.groovy");
 
 ratpack {
     handlers {
@@ -29,8 +41,40 @@ ratpack {
             render "ok"
         }
 
-        get "android/list", {
+        get "android/devices", {
+            def browser = browsers.empty ? new Browser() : browsers.poll()
+            try {
+                browser.go "https://myaccount.google.com/find-your-phone"
 
+                if (browser.currentUrl == "https://myaccount.google.com/intro/find-your-phone") {
+                    browser.authenticate(request.auth.username, request.auth.password)
+                }
+
+                browser.waitFor {
+                    browser.find xpath("//div[@role='list']/div/div") iterator() hasNext()
+                }
+
+                def info = browser
+                        .find(xpath("//div[@role='list']/div/div"))
+                        .iterator()
+                        .collect({ [name: it.attr("aria-label")] })
+
+                render(json(devices: info))
+
+                browsers << browser
+
+            } catch (e) {
+                log.error(e.message, e)
+                if (browser) {
+                    try {
+                        browser.close()
+                    } catch (e2) {
+                        log.error(e2.message, e2)
+                    }
+                }
+                render e.message
+            }
+            return null
         }
     }
 }
