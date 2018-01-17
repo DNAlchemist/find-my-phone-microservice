@@ -24,7 +24,9 @@
 
 
 import geb.Browser
+import org.openqa.selenium.By
 import org.slf4j.LoggerFactory
+import ratpack.form.Form
 
 import java.util.concurrent.ConcurrentLinkedQueue
 
@@ -41,7 +43,7 @@ ratpack {
             render "ok"
         }
 
-        get "android/devices", {
+        get "android/devices", { ctx ->
             def browser = browsers.empty ? new Browser() : browsers.poll()
             try {
                 browser.go "https://myaccount.google.com/find-your-phone"
@@ -55,26 +57,70 @@ ratpack {
                 }
 
                 def info = browser
-                        .find(xpath("//div[@role='list']/div/div"))
+                        .find(deviceXPath())
                         .iterator()
                         .collect({ [name: it.attr("aria-label")] })
 
-                render(json(devices: info))
+                ctx.render(json(devices: info))
 
                 browsers << browser
-
             } catch (e) {
-                log.error(e.message, e)
-                if (browser) {
-                    try {
-                        browser.close()
-                    } catch (e2) {
-                        log.error(e2.message, e2)
-                    }
-                }
-                render e.message
+                log.error e.message, e
+                close browser
+                ctx.response.status 500
+                ctx.render e.message
+                return null
             }
-            return null
+        }
+
+        post "android/devices/ring", { ctx ->
+            ctx.parse(Form).then { form ->
+                def browser = browsers.empty ? new Browser() : browsers.poll()
+                try {
+                    browser.go "https://myaccount.google.com/find-your-phone"
+
+                    if (browser.currentUrl == "https://myaccount.google.com/intro/find-your-phone") {
+                        browser.authenticate(request.auth.username, request.auth.password)
+                    }
+
+                    browser.waitFor {
+                        browser.find xpath("//div[@role='list']/div/div") iterator() hasNext()
+                    }
+
+                    browser
+                            .find(deviceXPath(form.name))
+                            .first()
+                            .click()
+
+                    browser
+                            .find(xpath("//div[text()='Прозвонить']"))
+                            .click()
+
+                    ctx.response.status 200
+                    ctx.response.send()
+                } catch (e) {
+                    log.error e.message, e
+                    close browser
+                    ctx.response.status 500
+                    ctx.render e.message
+                }
+            }
+        }
+
+    }
+
+}
+
+def close(Browser browser) {
+    if (browser) {
+        try {
+            browser.close()
+        } catch (e2) {
+            log.error(e2.message, e2)
         }
     }
+}
+
+static By deviceXPath(String s) {
+    return xpath("//div[@role='list']/div/div" + (s ? "[@aria-label='${s}']" : ""))
 }
