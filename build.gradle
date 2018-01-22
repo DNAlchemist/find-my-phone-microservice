@@ -6,6 +6,8 @@ buildscript {
     dependencies {
         classpath 'nl.javadude.gradle.plugins:license-gradle-plugin:0.10.0'
         classpath 'io.ratpack:ratpack-gradle:1.5.1'
+        classpath 'se.transmode.gradle:gradle-docker:1.2'
+        classpath 'com.github.jengelman.gradle.plugins:shadow:2.0.1'
     }
 }
 
@@ -14,6 +16,8 @@ apply plugin: 'io.ratpack.ratpack-groovy'
 
 apply from: 'integTest.gradle'
 apply from: 'license.gradle'
+apply from: 'shadow.gradle'
+apply from: 'docker.gradle'
 
 repositories {
     jcenter()

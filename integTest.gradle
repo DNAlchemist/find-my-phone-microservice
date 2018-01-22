@@ -3,6 +3,7 @@ sourceSets {
 }
 
 task integTest(type: Test) {
+    systemProperty("webdriver.chrome.driver", System.getProperty('webdriver.chrome.driver'))
     description = "Runs integration tests."
     testClassesDirs = sourceSets.integTest.output.classesDirs
     classpath = sourceSets.integTest.runtimeClasspath

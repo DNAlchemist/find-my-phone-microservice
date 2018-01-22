@@ -1,0 +1,12 @@
+version: '2'
+services:
+  findmyphonemicroservice:
+    image: chest/find-my-phone-microservice
+    ports:
+      - "5052:5050"
+    depends_on:
+      - chrome
+  chrome:
+    image: selenium/standalone-chrome
+    ports:
+      - "4444:4444"
