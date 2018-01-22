@@ -46,7 +46,14 @@ class AuthenticateExtension {
 
         browser.find xpath("//input[@type='email']") value login
         browser.find xpath("//div[@id='identifierNext']") click()
+        authenticateWithPassword(browser, password)
+    }
 
+    static boolean isPasswordPage(Browser browser) {
+        return browser.find(xpath('''//p[text()="To continue, first verify it's you"]''')).size()
+    }
+
+    static authenticateWithPassword(Browser browser, String password) {
         browser.waitFor {
             browser.find xpath("//input[@type='password']") displayed
         }

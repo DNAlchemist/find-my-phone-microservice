@@ -92,6 +92,14 @@ ratpack {
                             .first()
                             .click()
 
+                    if (browser.isPasswordPage()) {
+                        browser.authenticateWithPassword(request.auth.password)
+                    }
+
+                    browser.waitFor {
+                        browser.find xpath("//div[text()='Прозвонить']") iterator() hasNext()
+                    }
+
                     browser
                             .find(xpath("//div[text()='Прозвонить']"))
                             .click()
