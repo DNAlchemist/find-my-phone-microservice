@@ -119,12 +119,11 @@ ratpack {
 
 }
 
-def close(Browser browser) {
+static close(Browser browser) {
     if (browser) {
         try {
             browser.close()
-        } catch (e2) {
-            log.error(e2.message, e2)
+        } catch (ignored) {
         }
     }
 }
